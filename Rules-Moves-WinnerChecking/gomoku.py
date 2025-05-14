@@ -1,9 +1,11 @@
+#GAME BOARD, CHECKING WINNER BASED ON RULES
+
 class Gomoku:
     def __init__(self, size=15):
-        # Initialize the board as a 15x15 grid with all cells set to 0 (empty)
-        self.size = size
-        self.board = [[0 for _ in range(size)] for _ in range(size)]
-    
+        self.size = size  #self zy this kda - initialize the board as a 15x15 grid
+        self.board = [[0 for _ in range(size)] for _ in range(size)] #with all cells set to 0 (empty)
+####################################################################################################
+
     def display_board(self):
         # Display the board in a human-readable format
         for row in self.board:
