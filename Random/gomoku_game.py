@@ -82,52 +82,53 @@ class GomokuGame:
     def ai_move(self):
         print("AI Minimax is making a move...")
         best_score = float('-inf')
-        best_move = None
+        best_moves = []
 
-        # Focus only on cells that are adjacent to existing pieces to reduce branching factor
         moves_to_check = self.get_adjacent_empty_cells()
-
-        # If no adjacent cells (first move), choose a cell near the center
         if not moves_to_check:
             center = self.board.size // 2
             self.board.update_board(center, center, self.current_player)
             return
 
         for row, col in moves_to_check:
-            self.board.board[row][col] = self.current_player  # 5,5
-            score = self.minimax(0, False)  # score is good 0 is depth
-            self.board.board[row][col] = 0  # undo
+            self.board.board[row][col] = self.current_player
+            score = self.minimax(0, False)
+            self.board.board[row][col] = 0
 
             if score > best_score:
                 best_score = score
-                best_move = (row, col)
+                best_moves = [(row, col)]
+            elif score == best_score:
+                best_moves.append((row, col))
 
-        ai_row, ai_col = best_move
-        self.board.update_board(ai_row, ai_col, self.current_player)
+        best_move = random.choice(best_moves)  # Pick randomly among best moves
+        self.board.update_board(best_move[0], best_move[1], self.current_player)
 
     def ai_move_alphaBeta(self):
         print("AI Alpha_Beta is making a move...")
         best_score = float('-inf')
-        best_move = None
+        best_moves = []
 
         moves_to_check = self.get_adjacent_empty_cells()
-
-        if not moves_to_check:  # If no adjacent cells, pick the center (first move)
+        if not moves_to_check:
             center = self.board.size // 2
             self.board.update_board(center, center, self.current_player)
             return
 
         for row, col in moves_to_check:
-            self.board.board[row][col] = self.current_player  # Make the move
-            score = self.alpha_beta(0, float('-inf'), float('inf'), False)  # Call Alpha-Beta with depth 0
-            self.board.board[row][col] = 0  # Undo the move
+            self.board.board[row][col] = self.current_player
+            score = self.alpha_beta(0, float('-inf'), float('inf'), False)
+            self.board.board[row][col] = 0
 
             if score > best_score:
                 best_score = score
-                best_move = (row, col)
+                best_moves = [(row, col)]
+            elif score == best_score:
+                best_moves.append((row, col))
 
-        ai_row, ai_col = best_move
-        self.board.update_board(ai_row, ai_col, self.current_player)  # Apply the best move
+        best_move = random.choice(best_moves)  # Pick randomly among best moves
+        self.board.update_board(best_move[0], best_move[1], self.current_player)
+
 
     def get_adjacent_empty_cells(self):
         adjacent_cells = set()

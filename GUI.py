@@ -62,7 +62,7 @@ def draw_game_mode_screen():
     screen.blit(text, (size // 2 - text.get_width() // 2, size // 3 - 50))
 
     # Centered game mode options
-    text1 = font.render("1. Human vs AI", True, (255, 255, 255))
+    text1 = font.render("1. Human vs Minimax", True, (255, 255, 255))
     text2 = font.render("2. AI vs AI", True, (255, 255, 255))
     text3 = font.render("3. Human vs AlphaBeta", True, (255, 255, 255))
 
