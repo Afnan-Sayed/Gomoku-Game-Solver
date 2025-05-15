@@ -3,17 +3,12 @@ from Rules.gomoku import Gomoku
 
 
 class GomokuGame:
-    def __init__(self, size=15):
+    def __init__(self, size=15, depth=2):
         self.board = Gomoku(size)
-        self.current_player = 1  # Player 1 starts
+        self.current_player = 1  # Player 1 starts not the AI if AI will rep 2
         self.game_over = False
+        self.max_depth = depth
 
-        def play_human_vs_ai(self):
-            # Handles Human vs AI mode logic
-            if self.current_player == 1:  # Human's turn
-                return "human"
-            else:  # AI's turn (plays randomly for now)
-                return "ai"
     def start_game(self):
         # Prompt the user for the game mode
         game_mode = input("Choose game mode:\n1. Human vs. AI\n2. AI vs. AI\nEnter your choice (1 or 2): ")
@@ -31,7 +26,7 @@ class GomokuGame:
             self.board.display_board()
             if self.current_player == 1:  # Human's turn
                 self.human_move()
-            else:  # AI's turn (plays randomly for now)
+            else:  #
                 self.ai_move()
             winner_start, winner_end = self.check_winner()
             if winner_start and winner_end:
@@ -70,13 +65,135 @@ class GomokuGame:
 
     def ai_move(self):
         print("AI is making a move...")
-        ai_row, ai_col = self.get_random_move()
-        self.board.update_board(ai_row, ai_col, self.current_player)
+        best_score = float('-inf')
+        best_move = None
 
-    def get_random_move(self):
-        # AI picks a random move (placeholder for Minimax/Alpha-Beta)
-        empty_cells = [(i, j) for i in range(self.board.size) for j in range(self.board.size) if self.board.board[i][j] == 0]
-        return random.choice(empty_cells) if empty_cells else (-1, -1)
+        # Focus only on cells that are adjacent to existing pieces to reduce branching factor
+        moves_to_check = self.get_adjacent_empty_cells()
+
+        # If no adjacent cells (first move), choose a cell near the center
+        if not moves_to_check:
+            center = self.board.size // 2
+            self.board.update_board(center, center, self.current_player)
+            return
+
+        for row, col in moves_to_check:
+            self.board.board[row][col] = self.current_player #5,5
+            score = self.minimax(0, False) #score is good 0 is depth
+            self.board.board[row][col] = 0# undo
+
+            if score > best_score:
+                best_score = score
+                best_move = (row, col)
+
+        ai_row, ai_col = best_move
+        self.board.update_board(ai_row, ai_col, self.current_player)#
+
+    def get_adjacent_empty_cells(self):
+        adjacent_cells = set()
+        for i in range(self.board.size):
+            for j in range(self.board.size):
+                if self.board.board[i][j] != 0:  # If cell has a piece
+                    for di in [-1, 0, 1]:
+                        for dj in [-1, 0, 1]:
+                            if di == 0 and dj == 0:
+                                continue
+                            ni, nj = i + di, j + dj
+                            if (0 <= ni < self.board.size and
+                                    0 <= nj < self.board.size and
+                                    self.board.board[ni][nj] == 0):
+                                adjacent_cells.add((ni, nj))
+        return list(adjacent_cells)
+
+    def minimax(self, depth, is_maximizing):
+        # Check if game is over or maximum depth reached
+        winner_start, winner_end = self.check_winner()#1,1 #1,5
+        if winner_start and winner_end:
+            return 100 if self.board.board[winner_start[0]][winner_start[1]] == self.current_player else -100
+        # base case2
+        if depth == self.max_depth:
+            return self.evaluate_board()
+
+        if is_maximizing:
+            max_eval = float('-inf')
+            moves = self.get_adjacent_empty_cells()
+
+            for row, col in moves:
+                if self.board.board[row][col] == 0:
+                    self.board.board[row][col] = self.current_player#2,3
+                    eval = self.minimax(depth + 1, False)
+                    self.board.board[row][col] = 0 #undo
+                    max_eval = max(max_eval, eval)
+            return max_eval
+        else:
+            min_eval = float('inf')
+            moves = self.get_adjacent_empty_cells()
+
+            opponent = 1 if self.current_player == 2 else 2
+            for row, col in moves:
+                if self.board.board[row][col] == 0:
+                    self.board.board[row][col] = opponent
+                    eval = self.minimax(depth + 1, True)
+                    self.board.board[row][col] = 0
+                    min_eval = min(min_eval, eval)
+            return min_eval
+
+    def evaluate_board(self):
+        score = 0
+        # Check horizontal, vertical, and diagonal lines
+                       # up     right  down     dig down
+        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+
+        for i in range(self.board.size):
+            for j in range(self.board.size):
+                if self.board.board[i][j] == 0:
+                    continue
+
+                is_current_player = self.board.board[i][j] == self.current_player
+                player_factor = 1 if is_current_player else -1
+
+                for dr, dc in directions:
+                    streak_length = 0
+                    open_ends = 0
+
+                    # Check if space before streak is empty
+                    prev_r, prev_c = i - dr, j - dc
+                    if 0 <= prev_r < self.board.size and 0 <= prev_c < self.board.size:
+                        if self.board.board[prev_r][prev_c] == 0:
+                            open_ends += 1
+
+                    # Calculate streak length
+                    for k in range(5):
+                        r, c = i + k * dr, j + k * dc
+                        if not (0 <= r < self.board.size and 0 <= c < self.board.size):
+                            break
+                        if self.board.board[r][c] != self.board.board[i][j]:
+                            break
+                        streak_length += 1
+
+                    # Check if space after streak is empty
+                    next_r, next_c = i + streak_length * dr, j + streak_length * dc
+                    if 0 <= next_r < self.board.size and 0 <= next_c < self.board.size:
+                        if self.board.board[next_r][next_c] == 0:
+                            open_ends += 1
+
+                    # Score based on streak length and open ends
+                    if streak_length >= 5:
+                        return 100 * player_factor
+                    elif streak_length == 4:
+                        if open_ends == 2:
+                            score += 50 * player_factor
+                        elif open_ends == 1:
+                            score += 10 * player_factor
+                    elif streak_length == 3:
+                        if open_ends == 2:
+                            score += 5 * player_factor
+                        elif open_ends == 1:
+                            score += 2 * player_factor
+                    elif streak_length == 2:
+                        if open_ends == 2:
+                            score += 1 * player_factor
+        return score
 
     def check_winner(self):
         return self.board.check_winner()
@@ -108,51 +225,3 @@ class GomokuGame:
 
     def switch_turn(self):
         self.current_player = 2 if self.current_player == 1 else 1
-
-
-
-
-"""
-class GomokuGame:
-
-    
-
-
-    def play_ai_vs_ai(self):
-        #Handles AI vs AI mode logic
-        if self.current_player == 1:  # AI 1's turn
-            return "ai1"
-        else:  # AI 2's turn
-            return "ai2"
-    
-    def human_move(self, row, col):
-        #Handle human move logic
-        if self.board.update_board(row, col, self.current_player):
-            self.check_winner()
-            self.switch_turn()
-
-    def ai_move(self):
-        #Handle AI move logic
-        ai_row, ai_col = self.get_random_move()
-        self.board.update_board(ai_row, ai_col, self.current_player)
-        self.check_winner()
-        self.switch_turn()
-
-    def get_random_move(self):
-        #AI picks a random move (for now)
-        empty_cells = [(i, j) for i in range(self.board.size) for j in range(self.board.size) if self.board.board[i][j] == 0]
-        return random.choice(empty_cells) if empty_cells else (-1, -1)
-
-    def check_winner(self):
-        #Check if there's a winner
-        start, end = self.board.check_winner()
-        if start is not None:
-            self.game_over = True
-            print(f"Player {self.current_player} wins!")
-            return True
-        return False
-
-    def switch_turn(self):
-        #Switch turns between players
-        self.current_player = 2 if self.current_player == 1 else 1
-"""
