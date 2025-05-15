@@ -1,23 +1,30 @@
 import random
-from gomoku import Gomoku
+from Rules.gomoku import Gomoku
+
 
 class GomokuGame:
     def __init__(self, size=15):
         self.board = Gomoku(size)
         self.current_player = 1  # Player 1 starts
         self.game_over = False
-    
+
+        def play_human_vs_ai(self):
+            # Handles Human vs AI mode logic
+            if self.current_player == 1:  # Human's turn
+                return "human"
+            else:  # AI's turn (plays randomly for now)
+                return "ai"
     def start_game(self):
         # Prompt the user for the game mode
         game_mode = input("Choose game mode:\n1. Human vs. AI\n2. AI vs. AI\nEnter your choice (1 or 2): ")
-        
+
         if game_mode == "1":
             self.play_human_vs_ai()
         elif game_mode == "2":
             self.play_ai_vs_ai()
         else:
             print("Invalid choice, please enter 1 or 2.")
-    
+
     def play_human_vs_ai(self):
         # Play Human vs. AI
         while not self.game_over:
@@ -60,12 +67,12 @@ class GomokuGame:
                 print("Invalid input. Please enter row and column as numbers.")
             except IndexError:
                 print("Move out of bounds. Please try again.")
-    
+
     def ai_move(self):
         print("AI is making a move...")
         ai_row, ai_col = self.get_random_move()
         self.board.update_board(ai_row, ai_col, self.current_player)
-    
+
     def get_random_move(self):
         # AI picks a random move (placeholder for Minimax/Alpha-Beta)
         empty_cells = [(i, j) for i in range(self.board.size) for j in range(self.board.size) if self.board.board[i][j] == 0]
@@ -101,3 +108,51 @@ class GomokuGame:
 
     def switch_turn(self):
         self.current_player = 2 if self.current_player == 1 else 1
+
+
+
+
+"""
+class GomokuGame:
+
+    
+
+
+    def play_ai_vs_ai(self):
+        #Handles AI vs AI mode logic
+        if self.current_player == 1:  # AI 1's turn
+            return "ai1"
+        else:  # AI 2's turn
+            return "ai2"
+    
+    def human_move(self, row, col):
+        #Handle human move logic
+        if self.board.update_board(row, col, self.current_player):
+            self.check_winner()
+            self.switch_turn()
+
+    def ai_move(self):
+        #Handle AI move logic
+        ai_row, ai_col = self.get_random_move()
+        self.board.update_board(ai_row, ai_col, self.current_player)
+        self.check_winner()
+        self.switch_turn()
+
+    def get_random_move(self):
+        #AI picks a random move (for now)
+        empty_cells = [(i, j) for i in range(self.board.size) for j in range(self.board.size) if self.board.board[i][j] == 0]
+        return random.choice(empty_cells) if empty_cells else (-1, -1)
+
+    def check_winner(self):
+        #Check if there's a winner
+        start, end = self.board.check_winner()
+        if start is not None:
+            self.game_over = True
+            print(f"Player {self.current_player} wins!")
+            return True
+        return False
+
+    def switch_turn(self):
+        #Switch turns between players
+        self.current_player = 2 if self.current_player == 1 else 1
+"""
