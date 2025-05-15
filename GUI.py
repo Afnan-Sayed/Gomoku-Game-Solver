@@ -274,10 +274,11 @@ def play_ai_vs_ai():
 
         pygame.time.wait(500)  # Wait half a second between moves
 
-        game.ai_move()
         if game.current_player == 1:
+            game.ai_move_alphaBeta()
             sound_p1.play()
         else:
+            game.ai_move()
             sound_p2.play()
 
         start, end = game.check_winner()
