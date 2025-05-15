@@ -1,5 +1,7 @@
 import pygame
-from Random.gomoku_game import GomokuGame
+from Random.WithoutRandom import GomokuGame
+#from Random.gomoku_game import GomokuGame
+
 
 # Initialize Pygame and mixer for sound
 pygame.init()
