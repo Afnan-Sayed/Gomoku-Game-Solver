@@ -43,7 +43,7 @@ def draw_start_screen():
     screen.fill((50, 50, 100))  # Background color of the start screen
     # Title text
     title_text = pygame.font.SysFont(None, 60).render("Welcome to Gomoku", True, (255, 255, 255))
-    screen.blit(title_text, (size // 2 - title_text.get_width() // 2, size // 3 - 80))  # Center the title
+    screen.blit(title_text, (size // 2 - title_text.get_width() // 2, size // 3 - 80))
 
     # Play button
     button_rect = pygame.Rect(size // 2 - 100, size // 2 - 40, 200, 80)
@@ -64,9 +64,11 @@ def draw_game_mode_screen():
     # Centered game mode options
     text1 = font.render("1. Human vs AI", True, (255, 255, 255))
     text2 = font.render("2. AI vs AI", True, (255, 255, 255))
+    text3 = font.render("3. Human vs AlphaBeta", True, (255, 255, 255))
 
     screen.blit(text1, (size // 2 - text1.get_width() // 2, size // 3 + 20))
     screen.blit(text2, (size // 2 - text2.get_width() // 2, size // 3 + 60))
+    screen.blit(text3, (size // 2 - text3.get_width() // 2, size // 3 + 100))
 
     pygame.display.flip()
 
@@ -143,6 +145,10 @@ while game_mode_screen and running:
                     mode = "ai_vs_ai"
                     game_mode_screen = False
                     lets_go_sound.play()
+                elif size // 3 + 100 <= mouse_y <= size // 3 + 140:  # Human vs AlphaBeta
+                    mode = "human_vs_alpha"
+                    game_mode_screen = False
+                    lets_go_sound.play()
 
 ###############################################################################################################
 
@@ -196,6 +202,56 @@ def play_human_vs_ai():
                 game.switch_turn()
 
 
+def play_human_vs_alpha():
+    global running
+    while running:
+        draw_board()
+
+        if game.game_over:
+            if game.current_player == 2:  # AI won
+                status_text = crazy_font.render("YOU LOST!", True, (255, 0, 0))
+            else:
+                status_text = font.render("You Win!", True, (0, 180, 0))
+            text_x = size // 2 - status_text.get_width() // 2
+            text_y = 10
+            screen.blit(status_text, (text_x, text_y))
+        else:
+            status_text = font.render(f"Player {game.current_player}'s turn", True, (0, 0, 0))
+            screen.blit(status_text, (10, 10))
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            elif event.type == pygame.MOUSEBUTTONDOWN and not game.game_over:
+                if game.current_player == 1:  # Human turn
+                    row, col = get_cell(pygame.mouse.get_pos())
+                    if row is not None and col is not None:
+                        moved = game.board.update_board(row, col, game.current_player)
+                        if moved:
+                            sound_p1.play()
+                            start, end = game.check_winner()
+                            if start is not None:
+                                win_sound.play()
+                                game.game_over = True
+                            else:
+                                game.switch_turn()
+
+        # AI's turn automatically
+        if not game.game_over and game.current_player == 2:
+            pygame.time.wait(500)
+            game.ai_move_alphaBeta()
+            sound_p2.play()
+            start, end = game.check_winner()
+            if start is not None:
+                lose_sound.play()
+                game.game_over = True
+            else:
+                game.switch_turn()
+
+
 def play_ai_vs_ai():
     global running
     while running:
@@ -239,5 +295,7 @@ if mode == "human_vs_ai":
     play_human_vs_ai()
 elif mode == "ai_vs_ai":
     play_ai_vs_ai()
+elif mode == "human_vs_alpha":
+    play_human_vs_alpha()
 
 pygame.quit()

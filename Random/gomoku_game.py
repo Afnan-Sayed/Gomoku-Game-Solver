@@ -35,6 +35,23 @@ class GomokuGame:
                 self.display_winning_move(winner_start, winner_end)
             self.switch_turn()
 
+
+    def play_human_vs_alpha(self):
+        # Play Human vs. AI
+        while not self.game_over:
+            self.board.display_board()
+            if self.current_player == 1:  # Human's turn
+                self.human_move()
+            else:  #
+                self.ai_move_alphaBeta()
+            winner_start, winner_end = self.check_winner()
+            if winner_start and winner_end:
+                self.game_over = True
+                print(f"Player {self.current_player} wins!")
+                print(f"Winning move: {winner_start} to {winner_end}")
+                self.display_winning_move(winner_start, winner_end)
+            self.switch_turn()
+
     def play_ai_vs_ai(self):
         # Play AI vs. AI
         while not self.game_over:
