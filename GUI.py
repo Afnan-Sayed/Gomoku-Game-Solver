@@ -11,6 +11,10 @@ lets_go_sound = pygame.mixer.Sound("let's go.mp3")
 sound_p1 = pygame.mixer.Sound("hit.mp3")
 sound_p2 = pygame.mixer.Sound("hit.mp3")
 win_sound = pygame.mixer.Sound("win.mp3")
+lose_sound = pygame.mixer.Sound("lose.mp3")
+crazy_font = pygame.font.SysFont("comicsansms", 60, bold=True)
+
+
 
 size = 700
 screen = pygame.display.set_mode((size, size))
@@ -148,10 +152,17 @@ def play_human_vs_ai():
         draw_board()
 
         if game.game_over:
-            status_text = font.render(f"Player {game.current_player} wins!", True, (255, 0, 0))
+            if game.current_player == 2:  # AI won
+                status_text = crazy_font.render("YOU LOST!", True, (255, 0, 0))
+            else:
+                status_text = font.render("You Win!", True, (0, 180, 0))
+            text_x = size // 2 - status_text.get_width() // 2
+            text_y = 10
+            screen.blit(status_text, (text_x, text_y))
         else:
             status_text = font.render(f"Player {game.current_player}'s turn", True, (0, 0, 0))
-        screen.blit(status_text, (10, 10))
+            screen.blit(status_text, (10, 10))
+
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -179,7 +190,7 @@ def play_human_vs_ai():
             sound_p2.play()
             start, end = game.check_winner()
             if start is not None:
-                win_sound.play()
+                lose_sound.play()
                 game.game_over = True
             else:
                 game.switch_turn()

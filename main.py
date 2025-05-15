@@ -1,19 +1,5 @@
 from Random.gomoku_game import GomokuGame
-""" 
-here is handling gameplay loop, player turns, input/output, choosing between two models, and uses gomoku.py and ai.py to run the game
 
-In main.py we will:
-
-1. Initialize your board using gomoku.Gomoku().
-2. Keep track of the current player.
-3. For human moves, ask for user input and update the board.
-4. For AI moves, call the AI algorithm function from Minimax.py or Alpha-Beta pruning.py, passing the current board state.
-5. Update the board with the AI's chosen move.
-6. Check if there is a winner.
-7. Switch turns until the game ends.
-"""
-
-# Example of running the game:
 if __name__ == "__main__":
     game = GomokuGame(size=15)
     game.start_game()
