@@ -1,7 +1,6 @@
 import random
 from Rules.gomoku import Gomoku
 
-
 class GomokuGame:
     def __init__(self, size=15, depth=2):
         self.board = Gomoku(size)
@@ -41,7 +40,7 @@ class GomokuGame:
         while not self.game_over:
             self.board.display_board()
             if self.current_player == 1:  # AI 1's turn
-                self.ai_move()
+                self.ai_move_alphaBeta()
             else:  # AI 2's turn
                 self.ai_move()
             winner_start, winner_end = self.check_winner()
@@ -64,7 +63,7 @@ class GomokuGame:
                 print("Move out of bounds. Please try again.")
 
     def ai_move(self):
-        print("AI is making a move...")
+        print("AI Minimax is making a move...")
         best_score = float('-inf')
         best_move = None
 
@@ -78,16 +77,40 @@ class GomokuGame:
             return
 
         for row, col in moves_to_check:
-            self.board.board[row][col] = self.current_player #5,5
-            score = self.minimax(0, False) #score is good 0 is depth
-            self.board.board[row][col] = 0# undo
+            self.board.board[row][col] = self.current_player  # 5,5
+            score = self.minimax(0, False)  # score is good 0 is depth
+            self.board.board[row][col] = 0  # undo
 
             if score > best_score:
                 best_score = score
                 best_move = (row, col)
 
         ai_row, ai_col = best_move
-        self.board.update_board(ai_row, ai_col, self.current_player)#
+        self.board.update_board(ai_row, ai_col, self.current_player)
+
+    def ai_move_alphaBeta(self):
+        print("AI Alpha_Beta is making a move...")
+        best_score = float('-inf')
+        best_move = None
+
+        moves_to_check = self.get_adjacent_empty_cells()
+
+        if not moves_to_check:  # If no adjacent cells, pick the center (first move)
+            center = self.board.size // 2
+            self.board.update_board(center, center, self.current_player)
+            return
+
+        for row, col in moves_to_check:
+            self.board.board[row][col] = self.current_player  # Make the move
+            score = self.alpha_beta(0, float('-inf'), float('inf'), False)  # Call Alpha-Beta with depth 0
+            self.board.board[row][col] = 0  # Undo the move
+
+            if score > best_score:
+                best_score = score
+                best_move = (row, col)
+
+        ai_row, ai_col = best_move
+        self.board.update_board(ai_row, ai_col, self.current_player)  # Apply the best move
 
     def get_adjacent_empty_cells(self):
         adjacent_cells = set()
@@ -107,7 +130,7 @@ class GomokuGame:
 
     def minimax(self, depth, is_maximizing):
         # Check if game is over or maximum depth reached
-        winner_start, winner_end = self.check_winner()#1,1 #1,5
+        winner_start, winner_end = self.check_winner()  # 1,1 #1,5
         if winner_start and winner_end:
             return 100 if self.board.board[winner_start[0]][winner_start[1]] == self.current_player else -100
         # base case2
@@ -120,9 +143,9 @@ class GomokuGame:
 
             for row, col in moves:
                 if self.board.board[row][col] == 0:
-                    self.board.board[row][col] = self.current_player#2,3
+                    self.board.board[row][col] = self.current_player  # 2,3
                     eval = self.minimax(depth + 1, False)
-                    self.board.board[row][col] = 0 #undo
+                    self.board.board[row][col] = 0  # undo
                     max_eval = max(max_eval, eval)
             return max_eval
         else:
@@ -138,10 +161,52 @@ class GomokuGame:
                     min_eval = min(min_eval, eval)
             return min_eval
 
+    def alpha_beta(self, depth, alpha, beta, maximizing_player):
+        # Base case: check if game over or maximum depth is reached
+        winner_start, winner_end = self.check_winner()
+        if winner_start and winner_end:
+            return 100 if self.board.board[winner_start[0]][winner_start[1]] == self.current_player else -100
+        if depth == self.max_depth:
+            return self.evaluate_board()
+
+        if maximizing_player:
+            max_eval = float('-inf')  # Start with a very low score
+            moves = self.get_adjacent_empty_cells()
+
+            for row, col in moves:
+                self.board.board[row][col] = self.current_player  # Try the move
+                eval = self.alpha_beta(depth + 1, alpha, beta, False)  # Explore opponent's move
+                self.board.board[row][col] = 0  # Undo the move
+
+                max_eval = max(max_eval, eval)
+                alpha = max(alpha, eval)  # Update alpha (max value for maximizing player)
+
+                if beta <= alpha:  # Beta cut-off (pruning)
+                    break  # No need to explore further; prune this branch
+
+            return max_eval
+        else:
+            min_eval = float('inf')  # Start with a very high score
+            moves = self.get_adjacent_empty_cells()
+
+            opponent = 2 if self.current_player == 1 else 1
+            for row, col in moves:
+                self.board.board[row][col] = opponent  # Try the opponent's move
+                eval = self.alpha_beta(depth + 1, alpha, beta, True)  # Explore AI's move
+                self.board.board[row][col] = 0  # Undo the move
+
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)  # Update beta (min value for minimizing player)
+
+                if beta <= alpha:  # Alpha cut-off (pruning)
+                    break  # No need to explore further; prune this branch
+
+            return min_eval
+
     def evaluate_board(self):
         score = 0
         # Check horizontal, vertical, and diagonal lines
-                       # up     right  down     dig down
+        # up     right  down     dig down
         directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
 
         for i in range(self.board.size):

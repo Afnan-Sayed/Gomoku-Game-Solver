@@ -1,5 +1,5 @@
 import pygame
-from Random.gomoku_game import GomokuGame  # Import your game logic class
+from Random.gomoku_game import GomokuGame
 
 # Initialize Pygame and mixer for sound
 pygame.init()
@@ -206,7 +206,7 @@ def play_ai_vs_ai():
             screen.blit(status_text, (10, 10))
             pygame.display.flip()
             # Let the game pause a bit then quit or reset
-            pygame.time.wait(3000)
+            pygame.time.wait(100000)
             running = False
             break
         else:
